@@ -15,7 +15,7 @@ import os
 import webbrowser
 import spotipy
 
-engine = create_engine( 'sqlite:///music.db')
+engine = create_engine( 'sqlite:///test.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker( bind = engine)
 session = DBSession()
@@ -25,6 +25,7 @@ class GUI_Interface:
         self.master = master
         self.createNotebook()
         self.createTableInput()
+        self.createInfoWindow()
         self.createReviewInput()
 
     def createNotebook(self):
@@ -34,8 +35,11 @@ class GUI_Interface:
         self.page1.configure(width=600, height=180) 
         self.page2 = Frame(nb )
         self.page2.configure(width=600, height=400)
-        nb.add( self.page1, text = "Input album")
-        nb.add( self.page2, text = "Review album")
+        self.page3 = Frame(nb)
+        self.page3.configure(width=600, height=400)
+        nb.add( self.page1, text = "Input")
+        nb.add( self.page2, text = "Current")
+        nb.add( self.page3, text = "Review")
         nb.pack( expand=1, fill="both")
 
     def createTableInput( self ):
@@ -59,19 +63,17 @@ class GUI_Interface:
         self.submitButton.grid( row=2, column=0 )
         self.messageLabel.grid( row=2, column=1)
 
-    def createReviewInput( self ):
+    def createInfoWindow( self ):
         self.tableFrame2 = tk.Frame( self.page2)
         self.tableFrame2.pack()
 
-        self.review = StringVar()
-        self.rating = StringVar()
-       
+               
         self.reviewsLabel = tk.Label( self.tableFrame2, text="Albums reviewed")
         self.numReviews = tk.Label( self.tableFrame2, text="")
         self.tableLabel = tk.Label( self.tableFrame2, text="Albums to listen:")
         self.albumCount = tk.Label( self.tableFrame2, text="test")
-        self.albumColumnLabel = tk.Label( self.tableFrame2, text='Current album:')
-        self.chosenAlbumLabel = tk.Label( self.tableFrame2, text="None")
+        self.chosenAlbumLabel1 = tk.Label( self.tableFrame2, text='Current album:')
+        self.chosenAlbum1 = tk.Label( self.tableFrame2, text="None")
         self.playButton = tk.Button( self.tableFrame2, text="Play", command=self.playSpotify)
         self.newAlbumButton = tk.Button( self.tableFrame2, text="New Album", command=self.chooseAlbum)
 
@@ -85,10 +87,6 @@ class GUI_Interface:
         self.wikiButton = tk.Button( self.tableFrame2, text="Wiki", command= lambda: self.openPage(0))
         self.lyricsButton = tk.Button( self.tableFrame2, text="Lyrics", command= lambda: self.openPage(1))
         self.rymButton = tk.Button( self.tableFrame2, text="RYM", command= lambda: self.openPage( 2 ))
-        self.ratingLabel = tk.Label( self.tableFrame2, text="Rating:")
-        self.ratingEntry = tk.Entry( self.tableFrame2, width=8, textvariable=self.rating )
-        self.reviewField = ScrolledText.ScrolledText(self.tableFrame2, height=8, width=120, font = ('Helvetica',12), borderwidth=3, relief=SUNKEN)
-        self.reviewSubmitButton = tk.Button( self.tableFrame2, text="Submit", command=self.reviewAlbum)
         self.messageLabel2 = tk.Label( self.tableFrame2, text="")
 
         self.reviewsLabel.grid( row=0, column=0)
@@ -96,9 +94,9 @@ class GUI_Interface:
         self.newAlbumButton.grid( row=0, rowspan=2, column=2)
         self.tableLabel.grid( row=1, column=0)
         self.albumCount.grid( row=1, column=1)
-        self.albumColumnLabel.grid( row=2, column=0, pady=(25,2))
-        self.chosenAlbumLabel.grid( row=2, column=1, pady=(25,2))
-        self.playButton.grid( row=2, column=2, pady=( 25, 2))
+        self.chosenAlbumLabel1.grid( row=2, column=0, pady=(25,25))
+        self.chosenAlbum1.grid( row=2, column=1,padx=(10, 10), pady=(25,25))
+        self.playButton.grid( row=2, column=2, pady=( 25, 25))
         self.releaseDateLabel.grid( row=3, column=0)
         self.releaseDate.grid( row=4, column=0)
         self.lengthLabel.grid( row=3, column=1)
@@ -106,17 +104,39 @@ class GUI_Interface:
         self.trackCountLabel.grid( row=3, column=2)
         self.trackCount.grid( row=4, column=2)
 
-        self.wikiButton.grid( row=5, column=0)
-        self.lyricsButton.grid( row=5, column=1)
-        self.rymButton.grid( row=5, column=2)
-        self.reviewField.grid( row=6, columnspan=3)
-        self.ratingLabel.grid( row=7, column=0)
-        self.ratingEntry.grid( row=7, column=1)
-        self.reviewSubmitButton.grid( row=7, column=2)
-        self.messageLabel2.grid( row=8, columnspan=3)
-        self.displayCurrent()
+        self.wikiButton.grid( row=5, column=0, pady=(20,15))
+        self.lyricsButton.grid( row=5, column=1, pady=(20,15))
+        self.rymButton.grid( row=5, column=2, pady=(20, 15))
+        self.messageLabel2.grid( row=6, column=1)
         self.displayTableCount()
         self.displayReviewCount()
+
+    def createReviewInput( self ):
+        self.tableFrame3 = tk.Frame( self.page3)
+        self.tableFrame3.pack()
+        
+        self.review = StringVar()
+        self.rating = StringVar()
+
+        self.chosenAlbumLabel2 = tk.Label( self.tableFrame3, text="Current album:")
+        self.chosenAlbum2 = tk.Label( self.tableFrame3, text="")
+        self.ratingLabel = tk.Label( self.tableFrame3, text="Rating:")
+        self.ratingEntry = tk.Entry( self.tableFrame3, width=8, textvariable=self.rating )
+        self.reviewLabel = tk.Label( self.tableFrame3, text="Review:")
+        self.reviewField = ScrolledText.ScrolledText(self.tableFrame3, height=8, width=120, font = ('Helvetica',12), borderwidth=3, relief=SUNKEN)
+        self.reviewSubmitButton = tk.Button( self.tableFrame3, text="Submit", command=self.reviewAlbum)
+        self.messageLabel3 = tk.Label( self.tableFrame3, text="")
+        
+        self.chosenAlbumLabel2.grid( row=0, column=0)
+        self.chosenAlbum2.grid( row=0, column=1, columnspan=2)
+        self.reviewLabel.grid( row=1, column=0)
+        self.reviewField.grid( row=2, columnspan=3)
+        self.ratingLabel.grid( row=3, column=0)
+        self.ratingEntry.grid( row=3, column=1)
+        self.reviewSubmitButton.grid( row=3, column=2)
+        self.messageLabel3.grid( row=4, columnspan=3) 
+        self.displayCurrent()
+
 
     def createTableEntry( self ):
         inputArtist = self.inputArtist.get()
@@ -215,7 +235,8 @@ class GUI_Interface:
         if( session.query(Current).first() is not None):
             self.current = session.query(Current).first()
             name = self.current.artist_name + " - " + self.current.album_name 
-            self.chosenAlbumLabel.configure( text=name)
+            self.chosenAlbum1.configure( text=name)
+            self.chosenAlbum2.configure( text=name)
             self.releaseDate.configure( text=str(self.current.release_year))
             self.length.configure( text=self.current.length)
             self.trackCount.configure( text=self.current.track_number)
@@ -230,17 +251,17 @@ class GUI_Interface:
 
     def reviewAlbum( self ):
         if session.query( Current ).first() is None:
-            self.message( "No album to review!", self.messageLabel2)
+            self.message( "No album to review!", self.messageLabel3)
         else:
             review=self.reviewField.get(1.0, END)
             rating=self.rating.get()
             try:
                 ratingInt = int(rating)
             except:
-                self.message( "Invalid rating", self.messageLabel2)
+                self.message( "Invalid rating", self.messageLabel3)
                 return
             if ratingInt < 1 or ratingInt > 10:
-                self.message( "Invalid rating", self.messageLabel2)
+                self.message( "Invalid rating", self.messageLabel3)
                 return
             newReview = Reviewed( 
                     artist_name=self.current.artist_name, 
@@ -263,13 +284,14 @@ class GUI_Interface:
             session.delete(self.current)
             session.commit()
 
-            self.chosenAlbumLabel.configure(text="None")
+            self.chosenAlbum1.configure(text="None")
+            self.chosenAlbum2.configure(text="None")
             self.releaseDate.configure( text="")
             self.length.configure( text="")
             self.trackCount.configure( text="")
         
             self.clearFieldsPage2()
-            self.message( self.current.album_name+" reviewed.", self.messageLabel2)
+            self.message( self.current.album_name+" reviewed.", self.messageLabel3)
             self.displayTableCount()
             self.displayReviewCount()
         
