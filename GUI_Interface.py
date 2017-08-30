@@ -15,7 +15,7 @@ import os
 import webbrowser
 import spotipy
 
-engine = create_engine( 'sqlite:///test.db')
+engine = create_engine( 'sqlite:///music.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker( bind = engine)
 session = DBSession()
@@ -134,7 +134,7 @@ class GUI_Interface:
         self.ratingLabel.grid( row=3, column=0)
         self.ratingEntry.grid( row=3, column=1)
         self.reviewSubmitButton.grid( row=3, column=2)
-        self.messageLabel3.grid( row=4, columnspan=3) 
+        self.messageLabel3.grid( row=4, columnspan=3, pady=(14,4)) 
         self.displayCurrent()
 
 
@@ -147,11 +147,11 @@ class GUI_Interface:
             return
 
         if session.query(Table).first() is not None and session.query(Table).filter_by(album_name=inputAlbum).scalar() is not None:
-            self.message(inputAlbum + " is already on table!", self.messageLabel)
+            self.message("'" + inputAlbum + "' is already on table!", self.messageLabel)
         elif session.query(Reviewed).first() is not None and session.query(Reviewed).filter_by(album_name=inputAlbum).scalar() is not None:
-            self.message(inputAlbum + " has already been reviewed!", self.messageLabel)
+            self.message("'" + inputAlbum + "' has already been reviewed!", self.messageLabel)
         elif session.query(Current).first() is not None and session.query(Current).filter_by(album_name=inputAlbum).scalar() is not None:
-            self.message(inputAlbum + " is currently up for review!", self.messageLabel)
+            self.message("'" + inputAlbum + "' is currently up for review!", self.messageLabel)
         else:
             table = Table( artist_name=inputArtist, album_name=inputAlbum )
             session.add( table )
@@ -203,11 +203,10 @@ class GUI_Interface:
             soup = bs.BeautifulSoup( sauce, 'lxml')
             length = soup.find('span', class_="duration").text 
             releaseDate = soup.find('td', class_="published").text
-            trackCount = None
-            try:
-                for table in soup.find_all('table', class_="tracklist"):
-                    trackCount = table.find_all( 'tr')[-1].find_all('td')[0].text[:-1]
-            except:
+            trackCount = None 
+            if listenLink:
+                trackCount = spotify.album_tracks( listenLink )['total']
+            else:
                 pass
             print( "creating row object...")
             #create row object
