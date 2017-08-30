@@ -3,7 +3,8 @@ from tkinter import ttk
 import tkinter as tk
 import re
 import requests
-from bs4 import BeautifulSoup
+import bs4 as bs
+import urllib.request
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from createDatabase import Base, Current, Table, Reviewed
@@ -73,6 +74,14 @@ class GUI_Interface:
         self.chosenAlbumLabel = tk.Label( self.tableFrame2, text="None")
         self.playButton = tk.Button( self.tableFrame2, text="Play", command=self.playSpotify)
         self.newAlbumButton = tk.Button( self.tableFrame2, text="New Album", command=self.chooseAlbum)
+
+        self.releaseDateLabel = tk.Label( self.tableFrame2, text="Release Date:")
+        self.releaseDate = tk.Label( self.tableFrame2, text="")
+        self.lengthLabel = tk.Label( self.tableFrame2, text="Length:")
+        self.length = tk.Label( self.tableFrame2, text="")
+        self.trackCountLabel = tk.Label( self.tableFrame2, text="Number of Tracks:")
+        self.trackCount = tk.Label( self.tableFrame2, text="")
+
         self.wikiButton = tk.Button( self.tableFrame2, text="Wiki", command= lambda: self.openPage(0))
         self.lyricsButton = tk.Button( self.tableFrame2, text="Lyrics", command= lambda: self.openPage(1))
         self.rymButton = tk.Button( self.tableFrame2, text="RYM", command= lambda: self.openPage( 2 ))
@@ -90,14 +99,21 @@ class GUI_Interface:
         self.albumColumnLabel.grid( row=2, column=0, pady=(25,2))
         self.chosenAlbumLabel.grid( row=2, column=1, pady=(25,2))
         self.playButton.grid( row=2, column=2, pady=( 25, 2))
-        self.wikiButton.grid( row=3, column=0)
-        self.lyricsButton.grid( row=3, column=1)
-        self.rymButton.grid( row=3, column=2)
-        self.reviewField.grid( row=4, columnspan=3)
-        self.ratingLabel.grid( row=5, column=0)
-        self.ratingEntry.grid( row=5, column=1)
-        self.reviewSubmitButton.grid( row=5, column=2)
-        self.messageLabel2.grid( row=6, columnspan=3)
+        self.releaseDateLabel.grid( row=3, column=0)
+        self.releaseDate.grid( row=4, column=0)
+        self.lengthLabel.grid( row=3, column=1)
+        self.length.grid(row=4, column=1)
+        self.trackCountLabel.grid( row=3, column=2)
+        self.trackCount.grid( row=4, column=2)
+
+        self.wikiButton.grid( row=5, column=0)
+        self.lyricsButton.grid( row=5, column=1)
+        self.rymButton.grid( row=5, column=2)
+        self.reviewField.grid( row=6, columnspan=3)
+        self.ratingLabel.grid( row=7, column=0)
+        self.ratingEntry.grid( row=7, column=1)
+        self.reviewSubmitButton.grid( row=7, column=2)
+        self.messageLabel2.grid( row=8, columnspan=3)
         self.displayCurrent()
         self.displayTableCount()
         self.displayReviewCount()
@@ -125,6 +141,7 @@ class GUI_Interface:
             self.displayTableCount()
     
     def chooseAlbum( self ): 
+        print( "choosing album...")
         if session.query( Table ).first() is None:
             self.message( "Nothing on the Table!", self.messageLabel2)
         elif session.query( Current ).first() is not None:
@@ -153,16 +170,34 @@ class GUI_Interface:
             else:
                 listenLink = self.getFirstURL( "youtube full album " + name)
                 self.message( "Failed to find album on spotify!", self.messageLabel2)
+
             #get links
+            print( "getting links...")
             wiki = self.getFirstURL("wikipedia " + name)
             lyrics = self.getFirstURL( "genius " + name)
             rym = self.getFirstURL( "rate your music " + name)
 
+            #get info
+            print( "getting info...")
+            sauce = urllib.request.urlopen(wiki).read() 
+            soup = bs.BeautifulSoup( sauce, 'lxml')
+            length = soup.find('span', class_="duration").text 
+            releaseDate = soup.find('td', class_="published").text
+            trackCount = None
+            try:
+                for table in soup.find_all('table', class_="tracklist"):
+                    trackCount = table.find_all( 'tr')[-1].find_all('td')[0].text[:-1]
+            except:
+                pass
+            print( "creating row object...")
             #create row object
             newCurrent = Current( 
                     artist_name=randAlbum.artist_name, 
                     album_name=randAlbum.album_name, 
                     spotify_uri = listenLink,
+                    length = length,
+                    release_year = releaseDate,
+                    track_number = trackCount,
                     wikipedia_link = wiki,
                     songmeanings_link = lyrics,
                     rym_link = rym )
@@ -181,6 +216,9 @@ class GUI_Interface:
             self.current = session.query(Current).first()
             name = self.current.artist_name + " - " + self.current.album_name 
             self.chosenAlbumLabel.configure( text=name)
+            self.releaseDate.configure( text=str(self.current.release_year))
+            self.length.configure( text=self.current.length)
+            self.trackCount.configure( text=self.current.track_number)
         else:
             self.chosenAlbumLabel.configure( text="None") 
 
@@ -204,7 +242,21 @@ class GUI_Interface:
             if ratingInt < 1 or ratingInt > 10:
                 self.message( "Invalid rating", self.messageLabel2)
                 return
-            newReview = Reviewed( artist_name=self.current.artist_name, album_name=self.current.album_name, review=review, rating=rating, date_of_review=datetime.datetime.now().date() )
+            newReview = Reviewed( 
+                    artist_name=self.current.artist_name, 
+                    album_name=self.current.album_name, 
+                    review=review, 
+                    rating=rating, 
+                    date_of_review=datetime.datetime.now().date(),
+                    release_year=self.current.release_year,
+                    length=self.current.length,
+                    track_number=self.current.track_number,
+                    spotify_uri=self.current.spotify_uri,
+                    rym_link=self.current.rym_link,
+                    wikipedia_link=self.current.wikipedia_link,
+                    songmeanings_link=self.current.songmeanings_link,
+                    youtube_link=self.current.youtube_link
+                    )
             session.add( newReview )
             session.commit()
 
@@ -212,6 +264,10 @@ class GUI_Interface:
             session.commit()
 
             self.chosenAlbumLabel.configure(text="None")
+            self.releaseDate.configure( text="")
+            self.length.configure( text="")
+            self.trackCount.configure( text="")
+        
             self.clearFieldsPage2()
             self.message( self.current.album_name+" reviewed.", self.messageLabel2)
             self.displayTableCount()
@@ -261,7 +317,7 @@ class GUI_Interface:
     def getFirstURL( self, search ):
         results = 1 
         page = requests.get("https://www.google.com/search?q={}&num={}".format(search, results))
-        soup = BeautifulSoup(page.content, "lxml")
+        soup = bs.BeautifulSoup(page.content, "lxml")
         links = soup.findAll("a")
         for link in links :
             link_href = link.get('href')
