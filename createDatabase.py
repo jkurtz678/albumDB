@@ -17,6 +17,9 @@ class Current( Base ):
     spotify_uri = Column( String() )
     rym_link = Column( String() )
     wikipedia_link = Column( String() )
+    christgau_link = Column( String() )
+    reddit_link = Column( String() )
+    genius_link = Column( String() )
     songmeanings_link = Column( String() )
     youtube_link = Column( String() )
 
@@ -40,6 +43,9 @@ class Reviewed( Base ):
     spotify_uri = Column( String() )
     rym_link = Column( String() )
     wikipedia_link = Column( String() )
+    christgau_link = Column( String() )
+    reddit_link = Column( String() )
+    genius_link = Column( String() )
     songmeanings_link = Column( String() )
     youtube_link = Column( String() )
 

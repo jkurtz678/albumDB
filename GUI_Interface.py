@@ -15,6 +15,8 @@ import os
 import webbrowser
 import spotipy
 
+bcolor= "#9FBED6"
+fcolor= ""
 engine = create_engine( 'sqlite:///music.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker( bind = engine)
@@ -31,11 +33,11 @@ class GUI_Interface:
     def createNotebook(self):
         nb = ttk.Notebook( self.master )
         
-        self.page1 = Frame(nb)
+        self.page1 = Frame(nb, bg=bcolor )
         self.page1.configure(width=600, height=180) 
-        self.page2 = Frame(nb )
+        self.page2 = Frame(nb, bg=bcolor )
         self.page2.configure(width=600, height=400)
-        self.page3 = Frame(nb)
+        self.page3 = Frame(nb, bg=bcolor)
         self.page3.configure(width=600, height=400)
         nb.add( self.page1, text = "Input")
         nb.add( self.page2, text = "Current")
@@ -43,7 +45,7 @@ class GUI_Interface:
         nb.pack( expand=1, fill="both")
 
     def createTableInput( self ):
-        self.tableFrame1 = tk.Frame( self.page1 )
+        self.tableFrame1 = tk.Frame( self.page1, bg=bcolor, height=400 )
         self.tableFrame1.pack()
 
         self.inputArtist = StringVar()
@@ -56,17 +58,16 @@ class GUI_Interface:
         self.submitButton = tk.Button( self.tableFrame1, text="Submit", command=self.createTableEntry)
         self.messageLabel = tk.Label( self.tableFrame1, text="" )
         
-        self.artistLabel.grid( row=0, column=0 )
-        self.albumLabel.grid( row=0, column=1 )
-        self.artistEntry.grid( row=1, column=0 )
-        self.albumEntry.grid( row=1, column=1 )
-        self.submitButton.grid( row=2, column=0 )
-        self.messageLabel.grid( row=2, column=1)
+        self.artistLabel.grid( row=0, column=0, pady=(50,5) )
+        self.albumLabel.grid( row=0, column=1, pady=(50,5))
+        self.artistEntry.grid( row=1, column=0, pady=(5,15), padx=(10,10) )
+        self.albumEntry.grid( row=1, column=1, pady=(5,15), padx=(10,10) )
+        self.submitButton.grid( row=2, column=0, pady=(20,10) )
+        self.messageLabel.grid( row=2, column=1, pady=(20,10) )
 
     def createInfoWindow( self ):
-        self.tableFrame2 = tk.Frame( self.page2)
+        self.tableFrame2 = tk.Frame( self.page2, bg=bcolor)
         self.tableFrame2.pack()
-
                
         self.reviewsLabel = tk.Label( self.tableFrame2, text="Albums reviewed")
         self.numReviews = tk.Label( self.tableFrame2, text="")
@@ -85,8 +86,11 @@ class GUI_Interface:
         self.trackCount = tk.Label( self.tableFrame2, text="")
 
         self.wikiButton = tk.Button( self.tableFrame2, text="Wiki", command= lambda: self.openPage(0))
-        self.lyricsButton = tk.Button( self.tableFrame2, text="Lyrics", command= lambda: self.openPage(1))
-        self.rymButton = tk.Button( self.tableFrame2, text="RYM", command= lambda: self.openPage( 2 ))
+        self.rymButton = tk.Button( self.tableFrame2, text="RYM", command= lambda: self.openPage( 1 ))
+        self.christgauButton = tk.Button( self.tableFrame2, text="Christgau", command= lambda: self.openPage(2))
+        self.songmeaningsButton = tk.Button( self.tableFrame2, text="Songmeanings", command= lambda: self.openPage(3)) 
+        self.geniusButton = tk.Button( self.tableFrame2, text="Genius", command= lambda: self.openPage(4))
+        self.redditButton = tk.Button( self.tableFrame2, text="Reddit", command= lambda: self.openPage(5))
         self.messageLabel2 = tk.Label( self.tableFrame2, text="")
 
         self.reviewsLabel.grid( row=0, column=0)
@@ -105,14 +109,18 @@ class GUI_Interface:
         self.trackCount.grid( row=4, column=2)
 
         self.wikiButton.grid( row=5, column=0, pady=(20,15))
-        self.lyricsButton.grid( row=5, column=1, pady=(20,15))
-        self.rymButton.grid( row=5, column=2, pady=(20, 15))
-        self.messageLabel2.grid( row=6, column=1)
+        self.rymButton.grid( row=5, column=1, pady=(20,15))
+        self.christgauButton.grid( row=5, column=2, pady=(20, 15))
+        self.songmeaningsButton.grid( row=6, column=0, pady=(20,15))
+        self.geniusButton.grid( row=6, column=1, pady=(20,15))
+        self.redditButton.grid( row=6, column=2, pady=(20,15))
+
+        self.messageLabel2.grid( row=7, column=1)
         self.displayTableCount()
         self.displayReviewCount()
 
     def createReviewInput( self ):
-        self.tableFrame3 = tk.Frame( self.page3)
+        self.tableFrame3 = tk.Frame( self.page3, bg=bcolor)
         self.tableFrame3.pack()
         
         self.review = StringVar()
@@ -169,6 +177,7 @@ class GUI_Interface:
             self.displayCurrent()
         else:
             # authenticate spotify
+            print( "authenticate spotify...")
             os.system( "sh ./auth.sh > token.txt")
             os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
             with open('token.txt', 'r') as myfile:
@@ -198,15 +207,25 @@ class GUI_Interface:
             rym = self.getFirstURL( "rate your music " + name)
 
             #get info
+            length = ""
+            releaseDate = ""
+            trackCount = 0
             print( "getting info...")
-            sauce = urllib.request.urlopen(wiki).read() 
-            soup = bs.BeautifulSoup( sauce, 'lxml')
-            length = soup.find('span', class_="duration").text 
-            releaseDate = soup.find('td', class_="published").text
-            trackCount = None 
-            if listenLink:
-                trackCount = spotify.album_tracks( listenLink )['total']
-            else:
+            try:
+                sauce = urllib.request.urlopen(wiki).read() 
+                soup = bs.BeautifulSoup( sauce, 'lxml')
+                try:
+                    length = soup.find('span', class_="duration").text 
+                    releaseDate = soup.find('td', class_="published").text
+                    trackCount = None 
+                    if listenLink:
+                        trackCount = spotify.album_tracks( listenLink )['total']
+                    else:
+                        pass
+                except:
+                    pass
+            except:
+                print( "Cant find sauce")
                 pass
             print( "creating row object...")
             #create row object
@@ -240,7 +259,8 @@ class GUI_Interface:
             self.length.configure( text=self.current.length)
             self.trackCount.configure( text=self.current.track_number)
         else:
-            self.chosenAlbumLabel.configure( text="None") 
+            self.chosenAlbumLabel1.configure( text="None") 
+            self.chosenAlbumLabel2.configure( text="None")
 
     def displayTableCount( self ):
         self.albumCount.configure( text=str(session.query(Table).count()))
@@ -322,10 +342,16 @@ class GUI_Interface:
             url = ""
             if index == 0 and current.wikipedia_link:
                 url = current.wikipedia_link
-            elif index == 1 and current.songmeanings_link:
-                url = current.songmeanings_link
-            elif index == 2 and current.rym_link:
+            elif index == 1 and current.rym_link:
                 url = current.rym_link
+            elif index == 2 and current.christgau_link:
+                url = current.christgau_link
+            elif index == 3 and current.songmeanings_link:
+                url = current.songmeanings_link
+            elif index == 4 and current.genius_link:
+                url = current.genius_link
+            elif index == 5 and current.reddit_link:
+                url = current.reddit_link
             else:
                 self.message( "Unable to find url", self.messageLabel2)
                 return
