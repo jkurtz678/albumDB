@@ -308,30 +308,25 @@ class GUI_Interface:
             self.displayCurrent()
          '''
         # authenticate spotify
-        print( "authenticate spotify...")
-        os.system( "sh ./auth.sh > token.txt")
-        os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
-        with open('token.txt', 'r') as myfile:
-            token=myfile.read().replace('\n', '')
+        #print( "authenticate spotify...")
+        #os.system( "sh ./auth.sh > token.txt")
+        #os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+        #with open('token.txt', 'r') as myfile:
+            #token=myfile.read().replace('\n', '')
 
-        spotify = spotipy.Spotify(auth=token)
-        '''
-        #get random album from table
-        rand = random.randrange(0, session.query(Table).count())
-        print( "random: ", rand )
-        randAlbum = session.query(Table)[rand]  
-        '''          
+        #spotify = spotipy.Spotify(auth=token)
         #get spotify URI
         name = randAlbum.album_name + " " + randAlbum.artist_name
-        results = spotify.search(q='album:' + name, type='album')
-        items = results['albums']['items']
-        if len(items) > 0:
-            spAlbum = items[0]
-            listenLink = spAlbum['uri']
-        else:
-            listenLink = self.getFirstURL( "youtube full album " + name)
-            self.message( "Failed to find album on spotify!", self.messageLabel2)
+        #results = spotify.search(q='album:' + name, type='album')
+        #items = results['albums']['items']
+        #if len(items) > 0:
+        #    spAlbum = items[0]
+        #    listenLink = spAlbum['uri']
+        #else:
+        #    listenLink = self.getFirstURL( "youtube full album " + name)
+        #    self.message( "Failed to find album on spotify!", self.messageLabel2)
 
+        listenLink = ""
         #get links
         print( "getting links...")
         wiki = self.getFirstURL("wikipedia " + name)
