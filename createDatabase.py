@@ -1,5 +1,5 @@
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String, Date
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -11,6 +11,7 @@ class Current( Base ):
     id = Column( Integer, primary_key = True )
     artist_name = Column( String(), nullable = False)
     album_name = Column( String(), nullable = False, unique = True)
+    category = Column( Enum( 'Classical', 'Jazz', 'Pop', 'New'), nullable = False)
     release_year = Column( String )
     length = Column( String )
     track_number = Column( Integer )
@@ -28,6 +29,7 @@ class Table( Base ):
     id = Column( Integer, primary_key = True )
     artist_name = Column( String(), nullable = False)
     album_name = Column( String(), nullable = False, unique=True)
+    category = Column( Enum( 'Classical', 'Jazz', 'Pop', 'New'), nullable = False)
 
 class Reviewed( Base ):
     __tablename__ = 'reviewed'
@@ -36,6 +38,8 @@ class Reviewed( Base ):
     album_name = Column( String(), nullable = False, unique = True)
     rating = Column( Integer, nullable = False)
     review = Column( String, nullable = False )
+    key_tracks = Column( String )
+    category = Column( Enum( 'Classical', 'Jazz', 'Pop', 'New'), nullable = False)
     date_of_review = Column( Date, nullable = False)
     release_year = Column( String )
     length = Column( String )
@@ -49,5 +53,6 @@ class Reviewed( Base ):
     songmeanings_link = Column( String() )
     youtube_link = Column( String() )
 
-engine = create_engine( 'sqlite:///test.db')
-Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    engine = create_engine( 'sqlite:///test.db')
+    Base.metadata.create_all(engine)
