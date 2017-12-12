@@ -388,8 +388,8 @@ class GUI_Interface:
         #new
         if( session.query(Current).filter_by(category="New").first() is not None):
             self.currentNew = session.query(Current).filter_by(category="New").first()
-            self.newAlbumLabel.configure( text=self.currentNew.artist_name)
-            self.newArtistLabel.configure( text=self.currentNew.album_name)
+            self.newAlbumLabel.configure( text=self.currentNew.album_name)
+            self.newArtistLabel.configure( text=self.currentNew.artist_name)
             self.newDateLabel.configure( text=str(self.currentNew.release_year))
             self.newLengthLabel.configure( text=self.currentNew.length)
         else:
@@ -400,8 +400,8 @@ class GUI_Interface:
         #pop
         if( session.query(Current).filter_by(category="Pop").first() is not None):
             self.currentPop = session.query(Current).filter_by(category="Pop").first()
-            self.popAlbumLabel.configure( text=self.currentPop.artist_name)
-            self.popArtistLabel.configure( text=self.currentPop.album_name)
+            self.popAlbumLabel.configure( text=self.currentPop.album_name)
+            self.popArtistLabel.configure( text=self.currentPop.artist_name)
             self.popDateLabel.configure( text=str(self.currentPop.release_year))
             self.popLengthLabel.configure( text=self.currentPop.length)
         else:
@@ -412,8 +412,8 @@ class GUI_Interface:
         #classical
         if( session.query(Current).filter_by(category="Classical").first() is not None):
             self.currentClassical = session.query(Current).filter_by(category="Classical").first()
-            self.classicalAlbumLabel.configure( text=self.currentClassical.artist_name)
-            self.classicalArtistLabel.configure( text=self.currentClassical.album_name)
+            self.classicalAlbumLabel.configure( text=self.currentClassical.album_name)
+            self.classicalArtistLabel.configure( text=self.currentClassical.artist_name)
             self.classicalDateLabel.configure( text=str(self.currentClassical.release_year))
             self.classicalLengthLabel.configure( text=self.currentClassical.length)
         else:
@@ -424,8 +424,8 @@ class GUI_Interface:
         #jazz    
         if( session.query(Current).filter_by(category="Jazz").first() is not None):
             self.currentJazz = session.query(Current).filter_by(category="Jazz").first()
-            self.jazzAlbumLabel.configure( text=self.currentJazz.artist_name)
-            self.jazzArtistLabel.configure( text=self.currentJazz.album_name)
+            self.jazzAlbumLabel.configure( text=self.currentJazz.album_name)
+            self.jazzArtistLabel.configure( text=self.currentJazz.artist_name)
             self.jazzDateLabel.configure( text=str(self.currentJazz.release_year))
             self.jazzLengthLabel.configure( text=self.currentJazz.length)
         else:
